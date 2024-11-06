@@ -1,0 +1,145 @@
+---
+# Elk Stack
+ - name: Allow Port 9200 through Firewall (CentOS)
+   tags: centos
+   firewalld:
+     zone: public
+     port: 9200/tcp
+     permanent: yes
+     state: enabled
+     immediate: yes
+   when: ansible_distribution == "CentOS"
+
+ - name: Allow Port 9200 through Firewall (Ubuntu)
+   tags: ubuntu
+   ufw:
+     rule: allow
+     port: 9200
+     proto: tcp
+   when: ansible_distribution == "Ubuntu"
+
+ - name: Add GPG key for ELK Stack (Ubuntu)
+   tags: ubuntu, elk
+   apt_key:
+     url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+     state: present
+   when: ansible_distribution == "Ubuntu"
+
+ - name: Add ELK Stack to Yum repository (CentOS)
+   tags: centos, elk
+   yum_repository:
+     name: elasticsearch
+     description: ElasticSearch Repository
+     baseurl: https://artifacts.elastic.co/packages/7.x/yum
+     gpgcheck: yes
+     gpgkey: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+     enabled: yes
+   when: ansible_distribution == "CentOS"
+
+ - name: Add ELK Stack to APT repository (Ubuntu)
+   tags: ubuntu, elk
+   apt_repository:
+     repo: "deb https://artifacts.elastic.co/packages/7.x/apt stable main"
+   when: ansible_distribution == "Ubuntu"
+
+ - name: Configure Elasticsearch
+   tags: centos, ubuntu, elk
+   blockinfile:
+     path: /etc/elasticsearch/elasticsearch.yml
+     block: |
+       # Elasticsearch config file
+       
+       cluster.name: my-cluster
+       node.name: dev-node-1
+       network.host: 0.0.0.0
+       http.port: 9200
+       discovery.type: single-node
+       path.data: /var/lib/elasticsearch
+       path.logs: /var/log/elasticsearch
+       bootstrap.memory_lock: true
+     state: present
+     create: yes
+
+ - name: Add GPG key for ElasticSearch (Ubuntu)
+   tags: ubuntu
+   apt_key:
+     url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+     state: present
+   when: ansible_distribution == "Ubuntu"
+
+ - name: Install Elk stack (Ubuntu & Centos)
+   tags: ubuntu, centos, elk
+   package:
+     name:
+       - elasticsearch
+       - kibana
+       - logstash
+     state: latest
+
+ - name: Enable ELK Stack service (Ubuntu & Centos)
+   tags: ubuntu, centos, elk
+   vars:
+     elk_stack:
+       - elasticsearch
+       - kibana
+       - logstash
+   service:
+     name: "{{ item }}"
+     enabled: yes
+     state: started
+   loop: "{{ elk_stack }}"
+
+# Grafana n co
+# - name: Install Grafana, Prometheus, and InfluxDB (Ubuntu)
+# - name: Install Grafana, Prometheus, and InfluxDB (Centos)
+
+# - name: Enable Grafana, Prometheus, and InfluxDB service
+ 
+# Lamp Stack
+ - name: Install Lamp Stack (httpd, php, mariadb) (Ubuntu)
+   tags: ubuntu, lamp
+   package:
+     name:
+       - apache2
+       - php
+       - mariadb-client
+       - mariadb-server
+     state: latest
+   when: ansible_distribution == "Ubuntu"
+
+ - name: Install Lamp Stack (httpd, php, mariadb) (Centos)
+   tags: centos, lamp
+   package:
+     name:
+       - httpd
+       - php
+       - mariadb-server
+     state: latest
+   when: ansible_distribution == "CentOS"
+
+ - name: Enable Lamp Stack service (Ubuntu)
+   tags: ubuntu, lamp
+   vars:
+     lamp_stack_u:
+       - apache2
+       - mariadb
+   service:
+     name: "{{ item }}"
+     enabled: yes
+     state: started
+   loop: "{{ lamp_stack_u }}"
+   when: ansible_distribution == "Ubuntu"
+
+ - name: Enable Lamp Stack service (Centos)
+   tags: centos, lamp
+   vars:
+     lamp_stack_c:
+       - httpd
+       - mariadb
+   service:
+     name: "{{ item }}"
+     enabled: yes
+     state: started
+   loop: "{{ lamp_stack_c }}"
+   when: ansible_distribution == "CentOS"
+

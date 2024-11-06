@@ -1,0 +1,59 @@
+---
+# Nagios
+
+ - name: install Nagios Prereq (Ubuntu)
+   tags: ubuntu, nagios
+   package:
+     name:
+       - gcc
+       - libc6-dev
+       - libpng-dev
+       - libfreetype6-dev
+       - libgd-dev
+     state: latest
+   when: ansible_distribution == "Ubuntu"
+
+ - name: install Nagios Prereq (Centos)
+   tags: centos, nagios
+   package:
+     name:
+       - epel-release
+       - freetype-devel
+       - gd-devel
+       - gcc
+       - glibc
+       - libpng-devel
+     state: latest
+   when: ansible_distribution == "CentOS"
+
+ - name: Install Nagios (CentOS)
+   tags: centos nagios
+   package:
+     name: nagios
+     state: latest
+   when: ansible_distribution == "CentOS"
+
+ - name: Install Nagios (Ubuntu)
+   tags: ubuntu, nagios
+   apt:
+     name: nagios3
+     state: latest
+   when: ansible_distribution == "Ubuntu"
+
+ - name: Enable Nagios Service (Centos)
+   tags: centos, nagios
+   service:
+     name: nagios
+     enabled: yes
+     state: started
+   when: ansible_distribution == "CentOS"
+
+ - name: Enable Nagios Service (Ubuntu)
+   tags: ubuntu, nagios
+   service:
+     name: nagios3
+     enabled: yes
+     state: started
+   when: ansible_distribution == "Ubuntu"
+
+
