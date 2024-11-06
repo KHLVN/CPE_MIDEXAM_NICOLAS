@@ -1,4 +1,5 @@
 [managed]
+server1
 centos   ansible_user=khlvn
 
 [web]
